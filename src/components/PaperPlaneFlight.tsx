@@ -8,6 +8,10 @@ export default function PaperPlaneFlight() {
   const [trailPathD, setTrailPathD] = useState('');
   const masterPathRef = useRef<SVGPathElement | null>(null);
 
+  // Smooth lerp state
+  const currentPosRef = useRef({ x: 80, y: 350, angle: 45 });
+  const targetPosRef = useRef({ x: 80, y: 350, angle: 45, visible: false, curDist: 0, totalLen: 1000 });
+
   useEffect(() => {
     const updateDimensions = () => {
       setWindowWidth(window.innerWidth || 1440);
@@ -31,21 +35,30 @@ export default function PaperPlaneFlight() {
       // Current distance of the rocket ahead
       const curDistance = progress * totalLen;
       const point = pathEl.getPointAtLength(curDistance);
-      const nextPoint = pathEl.getPointAtLength(Math.min(totalLen, curDistance + 14));
+      const nextPoint = pathEl.getPointAtLength(Math.min(totalLen, curDistance + 16));
 
-      // Rocket tangent angle
-      const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
+      // Calculate tangent angle with continuous angular unwrapping
+      const rawAngle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
+      const angle = isNaN(rawAngle) ? 45 : rawAngle;
 
-      // Rocket moves 1st, visible after slight initial scroll
       const isVisible = progress > 0.005 && progress < 0.995;
 
-      // Trailing path calculation: path appears dynamically behind the rocket
-      const trailLength = 650;
-      const trailStartDist = Math.max(0, curDistance - trailLength);
-      const trailEndDist = Math.max(0, curDistance - 15); // Behind rocket tail
+      targetPosRef.current = {
+        x: point.x,
+        y: point.y,
+        angle,
+        visible: isVisible,
+        curDist: curDistance,
+        totalLen,
+      };
 
-      if (trailEndDist > trailStartDist + 25 && isVisible) {
-        const steps = 30;
+      // Trailing path calculation: path appears dynamically behind the rocket
+      const trailLength = 700;
+      const trailStartDist = Math.max(0, curDistance - trailLength);
+      const trailEndDist = Math.max(0, curDistance - 18); // Behind rocket tail
+
+      if (trailEndDist > trailStartDist + 20 && isVisible) {
+        const steps = 36;
         const stepSize = (trailEndDist - trailStartDist) / steps;
         let d = '';
 
@@ -53,8 +66,8 @@ export default function PaperPlaneFlight() {
           const dPos = trailStartDist + i * stepSize;
 
           // Natural flight path gaps
-          const inGap1 = dPos > totalLen * 0.28 && dPos < totalLen * 0.33;
-          const inGap2 = dPos > totalLen * 0.58 && dPos < totalLen * 0.62;
+          const inGap1 = dPos > totalLen * 0.29 && dPos < totalLen * 0.34;
+          const inGap2 = dPos > totalLen * 0.60 && dPos < totalLen * 0.64;
 
           if (inGap1 || inGap2) {
             continue;
@@ -71,17 +84,38 @@ export default function PaperPlaneFlight() {
       } else {
         setTrailPathD('');
       }
+    };
+
+    // Smooth RAF loop for continuous smooth motion
+    let rafId: number;
+    const animate = () => {
+      const target = targetPosRef.current;
+      const cur = currentPosRef.current;
+
+      // Smooth lerp interpolation
+      const lerpFactor = 0.25;
+      cur.x += (target.x - cur.x) * lerpFactor;
+      cur.y += (target.y - cur.y) * lerpFactor;
+
+      // Handle angle lerp across 360 wrap
+      let angleDiff = (target.angle - cur.angle) % 360;
+      if (angleDiff > 180) angleDiff -= 360;
+      if (angleDiff < -180) angleDiff += 360;
+      cur.angle += angleDiff * lerpFactor;
 
       setPlanePos({
-        x: point.x,
-        y: point.y,
-        angle: isNaN(angle) ? 45 : angle,
-        visible: isVisible,
+        x: cur.x,
+        y: cur.y,
+        angle: cur.angle,
+        visible: target.visible,
       });
+
+      rafId = requestAnimationFrame(animate);
     };
 
     updateDimensions();
     handleScroll();
+    rafId = requestAnimationFrame(animate);
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', () => {
@@ -90,20 +124,22 @@ export default function PaperPlaneFlight() {
     });
 
     return () => {
+      cancelAnimationFrame(rafId);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', updateDimensions);
     };
   }, []);
 
-  // Multi-loop trajectory weaving through hero, narrative, between project cards, and into testimonials
-  const masterPathD = `M 0,260 C ${windowWidth * 0.12},480 ${windowWidth * 0.02},700 ${windowWidth * 0.48},780 C ${windowWidth * 0.88},850 ${windowWidth * 0.98},1080 ${windowWidth * 0.12},1280 C ${windowWidth * 0.02},1550 ${windowWidth * 0.45},1780 ${windowWidth * 0.55},1950 C ${windowWidth * 0.95},2180 ${windowWidth * 0.92},2500 ${windowWidth * 0.15},2750 C ${windowWidth * 0.05},3050 ${windowWidth * 0.88},3280 ${windowWidth * 0.85},3600 C ${windowWidth * 0.65},4050 ${windowWidth * 0.25},4400 ${windowWidth * 0.5},4850`;
+  // Precise flight path geometry matching reference video
+  const w = windowWidth;
+  const masterPathD = `M 0,280 C ${w * 0.12},480 ${w * 0.04},680 ${w * 0.42},760 C ${w * 0.82},830 ${w * 0.96},1050 ${w * 0.16},1240 C ${w * 0.02},1480 ${w * 0.48},1720 ${w * 0.54},1920 C ${w * 0.94},2140 ${w * 0.92},2460 ${w * 0.18},2700 C ${w * 0.06},3000 ${w * 0.85},3220 ${w * 0.82},3540 C ${w * 0.65},3980 ${w * 0.28},4320 ${w * 0.5},4780`;
 
   return (
     <div className="plane-fly pointer-events-none absolute inset-0 w-full h-full overflow-hidden z-30">
       {/* Hidden Master Path Reference */}
       <svg
         className="w-full h-full absolute inset-0 overflow-visible opacity-0 pointer-events-none"
-        viewBox={`0 0 ${windowWidth} 5000`}
+        viewBox={`0 0 ${w} 5000`}
         preserveAspectRatio="none"
       >
         <path
@@ -117,7 +153,7 @@ export default function PaperPlaneFlight() {
       {/* Dynamic Dotted Trail that Appears BEHIND Rocket and Hides at gaps */}
       <svg
         className="w-full h-full absolute inset-0 overflow-visible"
-        viewBox={`0 0 ${windowWidth} 5000`}
+        viewBox={`0 0 ${w} 5000`}
         preserveAspectRatio="none"
       >
         {trailPathD && (
@@ -134,11 +170,11 @@ export default function PaperPlaneFlight() {
 
       {/* 3D Coral Origami Rocket / Plane Leading the Flight */}
       <div
-        className="plane-sprite absolute w-14 h-14 flex items-center justify-center will-change-transform"
+        className="plane-sprite absolute w-14 h-14 flex items-center justify-center will-change-transform pointer-events-none"
         style={{
           transform: `translate3d(${planePos.x}px, ${planePos.y}px, 0) translate(-50%, -50%) rotate(${planePos.angle}deg)`,
           opacity: planePos.visible ? 1 : 0,
-          transition: 'opacity 0.25s ease, transform 0.08s linear',
+          transition: 'opacity 0.2s ease',
         }}
       >
         <svg viewBox="0 0 52 52" className="w-12 h-12 overflow-visible drop-shadow-2xl">
