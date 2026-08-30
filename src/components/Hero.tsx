@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Play, Pause } from 'lucide-react';
 
 interface HeroProps {
@@ -17,6 +17,14 @@ export default function Hero({ onCursorChange }: HeroProps) {
   const words = ['Codes', 'Builds', 'Ships', 'Solves'];
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
+
+  // Scroll animations for scaling down text and elements as user scrolls down
+  const { scrollY } = useScroll();
+  const heroContentScale = useTransform(scrollY, [0, 450], [1, 0.84]);
+  const heroContentOpacity = useTransform(scrollY, [0, 450], [1, 0.35]);
+  const heroContentY = useTransform(scrollY, [0, 450], [0, -50]);
+  const sunScale = useTransform(scrollY, [0, 450], [1, 0.88]);
+  const sunY = useTransform(scrollY, [0, 450], [0, -30]);
 
   // Cycling words every 2.4 seconds
   useEffect(() => {
@@ -104,8 +112,11 @@ export default function Hero({ onCursorChange }: HeroProps) {
       {/* Shooting Star Meteor in Night Mode */}
       <div className="shooting-star" />
 
-      {/* Compact Hatched Sun / Moon Circle Layered Over 'o' */}
-      <div className="hatched-sun pointer-events-none">
+      {/* Compact Hatched Sun / Moon Circle Layered Over 'o' with Scroll Scaling */}
+      <motion.div
+        style={{ scale: sunScale, y: sunY }}
+        className="hatched-sun pointer-events-none"
+      >
         <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl overflow-visible">
           <defs>
             <pattern id="diagonalHatch" width="22" height="22" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
@@ -117,12 +128,15 @@ export default function Hero({ onCursorChange }: HeroProps) {
           </defs>
           <circle cx="100" cy="100" r="92" fill="url(#diagonalHatch)" mask="url(#sunMask)" />
         </svg>
-      </div>
+      </motion.div>
 
       {/* Inner Content Container */}
       <div className="w-full h-full max-w-[1700px] mx-auto flex flex-col justify-between pt-16 pb-4 px-4 sm:px-8 lg:px-12 relative z-10">
-        {/* Main Central Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-1 sm:gap-2 items-center my-auto w-full -translate-y-3 sm:-translate-y-5">
+        {/* Main Central Layout with Scroll Shrinking Animation */}
+        <motion.div
+          style={{ scale: heroContentScale, opacity: heroContentOpacity, y: heroContentY }}
+          className="grid grid-cols-1 md:grid-cols-12 gap-1 sm:gap-2 items-center my-auto w-full -translate-y-3 sm:-translate-y-5 origin-center"
+        >
           {/* Far Left Vertical Rotated Label: DESIGN / DETAILS / CODE */}
           <div className="hidden md:flex md:col-span-1 items-center justify-start h-full">
             <div className="transform -rotate-90 origin-center whitespace-nowrap font-mono text-[10px] sm:text-[11px] tracking-[0.25em] text-white/80 uppercase">
@@ -236,7 +250,7 @@ export default function Hero({ onCursorChange }: HeroProps) {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Empty bottom spacer */}
         <div className="h-1" />
