@@ -31,40 +31,37 @@ export default function PaperPlaneFlight() {
       // Current distance of the rocket ahead
       const curDistance = progress * totalLen;
       const point = pathEl.getPointAtLength(curDistance);
-      const nextPoint = pathEl.getPointAtLength(Math.min(totalLen, curDistance + 12));
+      const nextPoint = pathEl.getPointAtLength(Math.min(totalLen, curDistance + 14));
 
       // Rocket tangent angle
       const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
 
-      // Rocket moves 1st, visible after slight scroll
-      const isVisible = progress > 0.008 && progress < 0.995;
+      // Rocket moves 1st, visible after slight initial scroll
+      const isVisible = progress > 0.005 && progress < 0.995;
 
-      // Trailing path calculation: path appears behind the rocket and hides in sections
-      // Trail length is ~500px trailing behind the plane
-      const trailLength = 550;
+      // Trailing path calculation: path appears dynamically behind the rocket
+      const trailLength = 650;
       const trailStartDist = Math.max(0, curDistance - trailLength);
-      const trailEndDist = Math.max(0, curDistance - 15); // Behind the rocket tail
+      const trailEndDist = Math.max(0, curDistance - 15); // Behind rocket tail
 
-      if (trailEndDist > trailStartDist + 20 && isVisible) {
-        // Build trailing subpath points
-        const steps = 24;
+      if (trailEndDist > trailStartDist + 25 && isVisible) {
+        const steps = 30;
         const stepSize = (trailEndDist - trailStartDist) / steps;
         let d = '';
 
         for (let i = 0; i <= steps; i++) {
           const dPos = trailStartDist + i * stepSize;
-          
-          // Hide path at specific zones (e.g. gaps in flight)
-          const inGap1 = dPos > totalLen * 0.32 && dPos < totalLen * 0.38;
-          const inGap2 = dPos > totalLen * 0.62 && dPos < totalLen * 0.67;
-          
+
+          // Natural flight path gaps
+          const inGap1 = dPos > totalLen * 0.28 && dPos < totalLen * 0.33;
+          const inGap2 = dPos > totalLen * 0.58 && dPos < totalLen * 0.62;
+
           if (inGap1 || inGap2) {
-            // Gap / Hidden section
             continue;
           }
 
           const pt = pathEl.getPointAtLength(dPos);
-          if (d === '' || inGap1 || inGap2) {
+          if (d === '') {
             d += `M ${pt.x.toFixed(1)},${pt.y.toFixed(1)} `;
           } else {
             d += `L ${pt.x.toFixed(1)},${pt.y.toFixed(1)} `;
@@ -98,14 +95,15 @@ export default function PaperPlaneFlight() {
     };
   }, []);
 
-  const masterPathD = `M 0,280 C ${windowWidth * 0.15},500 ${windowWidth * 0.05},750 ${windowWidth * 0.45},820 C ${windowWidth * 0.85},890 ${windowWidth * 0.95},1200 ${windowWidth * 0.75},1550 C ${windowWidth * 0.5},1900 ${windowWidth * 0.1},2200 ${windowWidth * 0.25},2650 C ${windowWidth * 0.4},3100 ${windowWidth * 0.9},3400 ${windowWidth * 0.75},3900 C ${windowWidth * 0.6},4400 ${windowWidth * 0.15},4800 ${windowWidth * 0.5},5300`;
+  // Multi-loop trajectory weaving through hero, narrative, between project cards, and into testimonials
+  const masterPathD = `M 0,260 C ${windowWidth * 0.12},480 ${windowWidth * 0.02},700 ${windowWidth * 0.48},780 C ${windowWidth * 0.88},850 ${windowWidth * 0.98},1080 ${windowWidth * 0.12},1280 C ${windowWidth * 0.02},1550 ${windowWidth * 0.45},1780 ${windowWidth * 0.55},1950 C ${windowWidth * 0.95},2180 ${windowWidth * 0.92},2500 ${windowWidth * 0.15},2750 C ${windowWidth * 0.05},3050 ${windowWidth * 0.88},3280 ${windowWidth * 0.85},3600 C ${windowWidth * 0.65},4050 ${windowWidth * 0.25},4400 ${windowWidth * 0.5},4850`;
 
   return (
     <div className="plane-fly pointer-events-none absolute inset-0 w-full h-full overflow-hidden z-30">
       {/* Hidden Master Path Reference */}
       <svg
         className="w-full h-full absolute inset-0 overflow-visible opacity-0 pointer-events-none"
-        viewBox={`0 0 ${windowWidth} 5500`}
+        viewBox={`0 0 ${windowWidth} 5000`}
         preserveAspectRatio="none"
       >
         <path
@@ -119,7 +117,7 @@ export default function PaperPlaneFlight() {
       {/* Dynamic Dotted Trail that Appears BEHIND Rocket and Hides at gaps */}
       <svg
         className="w-full h-full absolute inset-0 overflow-visible"
-        viewBox={`0 0 ${windowWidth} 5500`}
+        viewBox={`0 0 ${windowWidth} 5000`}
         preserveAspectRatio="none"
       >
         {trailPathD && (

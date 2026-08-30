@@ -38,12 +38,12 @@ export default function SelectedWork({ onCursorChange }: SelectedWorkProps) {
       });
 
   return (
-    <section id="work" className="projects-overlap py-24 px-6 md:px-12">
+    <section id="work" className="projects-overlap py-20 px-6 sm:px-10 lg:px-16 relative z-10">
       <div className="max-w-7xl mx-auto space-y-16">
-        {/* Infinite Logo Marquee Runner */}
+        {/* Infinite Logo Marquee Runner matching "Work featured on" */}
         <div className="space-y-4">
           <div className="text-center font-mono text-xs text-neutral-500 dark:text-neutral-400 tracking-widest uppercase">
-            VENTURES · PROJECTS · INNOVATIONS
+            Work featured on & Collaborations
           </div>
 
           <div className="logo-marquee-wrap border-y border-black/10 dark:border-white/10 py-4">
@@ -93,13 +93,13 @@ export default function SelectedWork({ onCursorChange }: SelectedWorkProps) {
         </div>
 
         {/* Header & Category Filters */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-black/10 dark:border-white/10 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-black/10 dark:border-white/10 pb-6">
           <div className="space-y-2">
             <div className="text-xs font-mono tracking-widest text-[#e5a500] dark:text-[#ffda3f] uppercase flex items-center gap-2 font-bold">
               <Sparkles size={13} />
               <span>CORE INNOVATIONS</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
               FEATURED PROJECTS
             </h2>
           </div>
@@ -122,66 +122,72 @@ export default function SelectedWork({ onCursorChange }: SelectedWorkProps) {
           </div>
         </div>
 
-        {/* Asymmetric Project Tiles */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {filteredProjects.map((project, idx) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
-              onClick={() => setSelectedProject(project)}
-              onMouseEnter={() => onCursorChange('view', 'EXPLORE')}
-              onMouseLeave={() => onCursorChange('default')}
-              className="group cursor-pointer rounded-3xl overflow-hidden border border-black/10 dark:border-white/10 bg-paper-light/80 dark:bg-[#0b1a3a]/70 p-7 space-y-6 hover:border-[#ffda3f] dark:hover:border-[#ffda3f] transition-all duration-500 shadow-xl backdrop-blur-md"
-            >
-              <div className="flex items-center justify-between font-mono text-xs text-neutral-500 dark:text-neutral-400">
-                <span className="font-bold text-[#e5a500] dark:text-[#ffda3f]">{project.number}</span>
-                <span>{project.year}</span>
-              </div>
+        {/* 2-Column Staggered Masonry Project Grid matching reference video */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-start">
+          {filteredProjects.map((project, idx) => {
+            const isRightColumn = idx % 2 === 1;
 
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden relative border border-black/10 dark:border-white/10">
-                <img
-                  src={project.coverImage}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-
-                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/85 font-mono text-[10px] text-white font-bold backdrop-blur-md">
-                  {project.category}
+            return (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: (idx % 2) * 0.15 }}
+                onClick={() => setSelectedProject(project)}
+                onMouseEnter={() => onCursorChange('view', 'EXPLORE')}
+                onMouseLeave={() => onCursorChange('default')}
+                className={`group cursor-pointer rounded-[32px] overflow-hidden border border-black/10 dark:border-white/10 bg-paper-light/90 dark:bg-[#0b1a3a]/80 p-7 space-y-6 hover:border-[#ffda3f] dark:hover:border-[#ffda3f] transition-all duration-500 shadow-xl backdrop-blur-md ${
+                  isRightColumn ? 'md:translate-y-12' : ''
+                }`}
+              >
+                <div className="flex items-center justify-between font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                  <span className="font-bold text-[#e5a500] dark:text-[#ffda3f]">{project.number}</span>
+                  <span>{project.year}</span>
                 </div>
-              </div>
 
-              <div className="space-y-2.5">
-                <h3 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white group-hover:text-[#e5a500] dark:group-hover:text-[#ffda3f] transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-sm font-light text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                  {project.description}
-                </p>
-              </div>
+                <div className="aspect-[16/11] rounded-2xl overflow-hidden relative border border-black/10 dark:border-white/10 bg-black/5">
+                  <img
+                    src={project.coverImage}
+                    alt={project.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
 
-              {/* Tech Stack Chips */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2.5 py-1 rounded-md bg-black/5 dark:bg-white/5 font-mono text-[10px] text-neutral-700 dark:text-neutral-300 border border-black/10 dark:border-white/10"
-                  >
-                    {tag}
+                  <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/85 font-mono text-[10px] text-white font-bold backdrop-blur-md">
+                    {project.category}
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <h3 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white group-hover:text-[#e5a500] dark:group-hover:text-[#ffda3f] transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-sm font-light text-neutral-600 dark:text-neutral-300 leading-relaxed line-clamp-3">
+                    {project.description}
+                  </p>
+                </div>
+
+                {/* Tech Stack Chips */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {project.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-2.5 py-1 rounded-md bg-black/5 dark:bg-white/5 font-mono text-[10px] text-neutral-700 dark:text-neutral-300 border border-black/10 dark:border-white/10"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="pt-4 border-t border-black/10 dark:border-white/10 flex items-center justify-between font-mono text-xs">
+                  <span className="text-neutral-500 dark:text-neutral-400">{project.role}</span>
+                  <span className="font-bold text-neutral-900 dark:text-white group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    CASE STUDY <ArrowUpRight size={14} className="text-[#e5a500] dark:text-[#ffda3f]" />
                   </span>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-black/10 dark:border-white/10 flex items-center justify-between font-mono text-xs">
-                <span className="text-neutral-500 dark:text-neutral-400">{project.role}</span>
-                <span className="font-bold text-neutral-900 dark:text-white group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                  CASE STUDY <ArrowUpRight size={14} className="text-[#e5a500] dark:text-[#ffda3f]" />
-                </span>
-              </div>
-            </motion.div>
-          ))}
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 
