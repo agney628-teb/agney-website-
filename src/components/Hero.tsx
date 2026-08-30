@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { PERSONAL_INFO } from '@/data/portfolioData';
-import { Play, Pause, Volume2, Sparkles, ArrowDownRight, Compass } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause } from 'lucide-react';
 
 interface HeroProps {
   onCursorChange: (mode: 'default' | 'view' | 'explore' | 'play' | 'open', text?: string) => void;
@@ -12,115 +11,33 @@ interface HeroProps {
 export default function Hero({ onCursorChange }: HeroProps) {
   const [wordIndex, setWordIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(30);
+  const [currentTime, setCurrentTime] = useState(0);
+  const totalDuration = 120; // 2:00
 
-  // 3D Spatial Mouse Coordinates
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const words = ['Codes', 'Builds', 'Ships', 'Solves'];
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
-  const words = ['BUILDS.', 'CREATES.', 'INNOVATES.', 'CO-FOUNDS.'];
 
-  // Handle 3D Mouse Parallax
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const { innerWidth, innerHeight } = window;
-      const x = (e.clientX / innerWidth - 0.5) * 2; // -1 to 1
-      const y = (e.clientY / innerHeight - 0.5) * 2; // -1 to 1
-
-      setTilt({
-        rotateX: -y * 12,
-        rotateY: x * 14,
-      });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // Ambient 3D Node Mesh Background
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const nodes: { x: number; y: number; z: number; vx: number; vy: number }[] = [];
-    for (let i = 0; i < 70; i++) {
-      nodes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        z: Math.random() * 2 + 0.5,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-      });
-    }
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      nodes.forEach((node, i) => {
-        node.x += node.vx;
-        node.y += node.vy;
-
-        if (node.x < 0 || node.x > width) node.vx *= -1;
-        if (node.y < 0 || node.y > height) node.vy *= -1;
-
-        // Draw node
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.z * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 175, 55, ${0.15 * node.z})`;
-        ctx.fill();
-
-        // Draw connections
-        for (let j = i + 1; j < nodes.length; j++) {
-          const other = nodes[j];
-          const dx = other.x - node.x;
-          const dy = other.y - node.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 130) {
-            ctx.beginPath();
-            ctx.moveTo(node.x, node.y);
-            ctx.lineTo(other.x, other.y);
-            ctx.strokeStyle = `rgba(212, 175, 55, ${(1 - dist / 130) * 0.08})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
-      });
-
-      animId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
-  // Vertical word rolling interval
+  // Cycling words every 2.4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((prev) => (prev + 1) % words.length);
-    }, 2800);
+    }, 2400);
     return () => clearInterval(interval);
   }, []);
 
+  // Timer counter when playing
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isPlaying) {
+      timer = setInterval(() => {
+        setCurrentTime((prev) => (prev >= totalDuration ? 0 : prev + 1));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying, totalDuration]);
+
+  // Audio synthesizer beat
   const togglePlay = async () => {
     if (!isPlaying) {
       try {
@@ -160,160 +77,176 @@ export default function Hero({ onCursorChange }: HeroProps) {
     }
   };
 
-  const splitText3D = (text: string) => {
-    return text.split('').map((char, index) => (
-      <span key={index} className="h-3d-letter">
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const splitLetters = (text: string) => {
+    return text.split('').map((char, i) => (
+      <span key={i} className="h-letter inline-block">
         {char === ' ' ? '\u00A0' : char}
       </span>
     ));
   };
 
+  const progressPercent = Math.min(100, Math.max(0, (currentTime / totalDuration) * 100));
+
   return (
-    <section className="hero-sticky flex flex-col justify-between pt-32 pb-16 px-6 md:px-12 max-w-7xl mx-auto border-b border-paper-dark dark:border-dark-border perspective-container relative select-none">
-      <div className="hero-noise-layer" />
+    <section className="hero-exact relative w-full h-screen min-h-[580px] select-none overflow-hidden flex flex-col justify-between">
+      {/* Exact Day Mode Background Image */}
+      <div className="hero-sky-day" />
 
-      {/* 3D Canvas Ambient Node Layer */}
-      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none z-0" />
+      {/* Exact Dark Mode Background Image (x.png) */}
+      <div className="hero-sky-dark" />
 
-      {/* Status Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-ink-muted dark:text-dark-muted relative z-10 border-b border-paper-dark dark:border-dark-border pb-6"
-      >
-        <div className="flex items-center gap-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>{PERSONAL_INFO.location}</span>
-        </div>
+      {/* Shooting Star Meteor in Night Mode */}
+      <div className="shooting-star" />
 
-        <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-ink dark:text-dark-text">
-          <Compass size={14} className="text-amber-500 animate-spin" />
-          <span>{PERSONAL_INFO.availability}</span>
-        </div>
-      </motion.div>
-
-      {/* Interactive 3D Display Headline */}
-      <div
-        className="relative z-10 space-y-4 py-8 text-3d-title"
-        style={{
-          transform: `rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-8xl md:text-[130px] lg:text-[150px] h-serif tracking-tight text-ink dark:text-dark-text select-none text-3d-layer-front"
-        >
-          {splitText3D('Multidisciplinary')}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-4xl sm:text-7xl md:text-[110px] h-serif tracking-tight text-ink dark:text-dark-text text-3d-layer-front"
-        >
-          <span>Designer Who</span>
-
-          {/* Rolling Word Animator */}
-          <div className="roll-container font-sans font-black uppercase text-accent">
-            <div
-              className="roll-track"
-              style={{ transform: `translateY(-${wordIndex * 25}%)` }}
-            >
-              {words.map((w, idx) => (
-                <div key={idx} className="h-[1.1em] flex items-center">
-                  {w}
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+      {/* Compact Hatched Sun / Moon Circle Layered Over 'o' */}
+      <div className="hatched-sun pointer-events-none">
+        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl overflow-visible">
+          <defs>
+            <pattern id="diagonalHatch" width="22" height="22" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="22" stroke="var(--sun-fill)" strokeWidth="11" />
+            </pattern>
+            <mask id="sunMask">
+              <circle cx="100" cy="100" r="92" fill="white" />
+            </mask>
+          </defs>
+          <circle cx="100" cy="100" r="92" fill="url(#diagonalHatch)" mask="url(#sunMask)" />
+        </svg>
       </div>
 
-      {/* 3D Spatially Tilted Audio Player Pill & Narrative */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end relative z-10 pt-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="md:col-span-6 space-y-4"
-        >
-          <p className="text-lg sm:text-2xl font-light text-ink-muted dark:text-dark-muted leading-relaxed">
-            {PERSONAL_INFO.subheadline}
-          </p>
-        </motion.div>
+      {/* Inner Content Container */}
+      <div className="w-full h-full max-w-[1700px] mx-auto flex flex-col justify-between pt-16 pb-4 px-4 sm:px-8 lg:px-12 relative z-10">
+        {/* Main Central Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-1 sm:gap-2 items-center my-auto w-full -translate-y-3 sm:-translate-y-5">
+          {/* Far Left Vertical Rotated Label: DESIGN / DETAILS / CODE */}
+          <div className="hidden md:flex md:col-span-1 items-center justify-start h-full">
+            <div className="transform -rotate-90 origin-center whitespace-nowrap font-mono text-[10px] sm:text-[11px] tracking-[0.25em] text-white/80 uppercase">
+              DESIGN / DETAILS / CODE
+            </div>
+          </div>
 
-        {/* 3D Tilted Vinyl Player Pill */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="md:col-span-6 flex justify-start md:justify-end"
-          style={{
-            transform: `rotateX(${-tilt.rotateX * 0.5}deg) rotateY(${-tilt.rotateY * 0.5}deg) translateZ(30px)`,
-          }}
-        >
-          <div
-            onMouseEnter={() => onCursorChange('play', isPlaying ? 'PAUSE' : 'PLAY')}
-            onMouseLeave={() => onCursorChange('default')}
-            className="recorder-pill shadow-2xl"
-          >
-            {/* Spinning 3D Vinyl Disc */}
-            <div className={`w-14 h-14 rounded-full border-2 border-black/40 bg-black relative flex items-center justify-center overflow-hidden flex-shrink-0 ${isPlaying ? 'disk-spin' : ''}`}>
-              <div className="w-5 h-5 rounded-full bg-amber-400 border border-black flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-black" />
-              </div>
+          {/* Core Display Area (11 columns) */}
+          <div className="md:col-span-11 flex flex-col justify-center space-y-1 sm:space-y-2">
+            {/* Eyebrow Tag: ● HELLO, I'M AGNEY. A — */}
+            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm tracking-wider uppercase text-white/95 font-semibold pb-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ffda3f] shadow-[0_0_8px_#ffda3f]" />
+              <span>HELLO, I&apos;M AGNEY. A —</span>
             </div>
 
-            {/* Audio Scrubber */}
-            <div className="space-y-1 font-mono text-xs">
-              <div className="font-bold flex items-center gap-2">
-                <span>AGNEY SOUND REEL 2026</span>
-                <Volume2 size={13} className={isPlaying ? 'text-accent animate-pulse' : 'text-gray-400'} />
-              </div>
+            {/* ROW 1: "Designer who" */}
+            <div className="relative z-10 flex items-baseline gap-x-4 sm:gap-x-10 text-[clamp(4.2rem,11.8vw,13.2rem)] dm-serif text-white tracking-tight leading-[0.82] drop-shadow-sm w-full">
+              <span>{splitLetters('Designer')}</span>
+              <span className="relative z-10">{splitLetters('who')}</span>
+            </div>
 
-              <div
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const clickX = e.clientX - rect.left;
-                  const newPct = Math.round((clickX / rect.width) * 100);
-                  setProgress(newPct);
-                }}
-                className="w-48 sm:w-56 h-2 rounded-full bg-black/20 dark:bg-white/20 relative cursor-pointer overflow-hidden"
-              >
+            {/* ROW 2: [Neumorphic Music Player Pill] + [Rolling Word: Codes / Builds / Ships / Solves] */}
+            <div className="relative z-20 flex flex-wrap items-center gap-4 sm:gap-8 lg:gap-10 pt-1">
+              {/* Left Column of Row 2: Clean Neumorphic Dual-Dial Music Player Pill */}
+              <div className="relative flex-shrink-0">
                 <div
-                  className="h-full bg-accent transition-all duration-200"
-                  style={{ width: `${progress}%` }}
-                />
+                  onMouseEnter={() => onCursorChange('play', isPlaying ? 'PAUSE' : 'PLAY')}
+                  onMouseLeave={() => onCursorChange('default')}
+                  className="player-pill-exact"
+                >
+                  {/* Left Recessed Well & Original Vinyl Speaker Dial */}
+                  <div className="dial-well">
+                    <div className={`dial-disc ${isPlaying ? 'spin-dial' : ''}`}>
+                      <div className="dial-center-dot" />
+                    </div>
+                  </div>
+
+                  {/* Center Player HUD matching reference image */}
+                  <div className="flex flex-col items-center justify-center gap-1.5 px-3 sm:px-5 min-w-[170px] sm:min-w-[215px]">
+                    {/* Track Title */}
+                    <div className="font-mono text-[12px] sm:text-[13px] text-[#2c2822] tracking-normal font-normal text-center">
+                      My design journey, rapped
+                    </div>
+
+                    {/* Recessed Slider Trench with Glowing Yellow Active Progress Line & Pearl Knob */}
+                    <div
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const pct = Math.max(0, Math.min(1, clickX / rect.width));
+                        setCurrentTime(Math.floor(pct * totalDuration));
+                      }}
+                      className="slider-trench my-0.5"
+                    >
+                      {/* Glowing Yellow Active Music Progress Line */}
+                      <div
+                        className="slider-progress-yellow"
+                        style={{ width: `${progressPercent}%` }}
+                      />
+
+                      {/* 3D Pearl Knob Thumb */}
+                      <div
+                        className="slider-pearl-knob"
+                        style={{ left: `${progressPercent}%` }}
+                      />
+                    </div>
+
+                    {/* Timestamps */}
+                    <div className="w-full flex items-center justify-between font-mono text-[11px] sm:text-[12px] text-[#332f28] font-normal px-0.5">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>2:00</span>
+                    </div>
+
+                    {/* Warm Dark Bronze Play Button */}
+                    <button
+                      onClick={togglePlay}
+                      className="player-play-btn mt-0.5"
+                      aria-label="Toggle Play"
+                    >
+                      {isPlaying ? (
+                        <Pause size={14} className="fill-current text-white" />
+                      ) : (
+                        <Play size={14} className="ml-0.5 fill-current text-white" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Right Recessed Well & Original Vinyl Speaker Dial */}
+                  <div className="dial-well">
+                    <div className={`dial-disc ${isPlaying ? 'spin-dial' : ''}`}>
+                      <div className="dial-center-dot" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] opacity-70">
-                <span>00:14</span>
-                <span>01:24</span>
+              {/* Right Column of Row 2: Dynamic Rolling Word */}
+              <div className="relative min-w-[280px] sm:min-w-[380px] lg:min-w-[480px] h-[1.12em] overflow-hidden text-[clamp(4.2rem,11.8vw,13.2rem)] dm-serif text-white tracking-tight leading-[0.82] drop-shadow-sm flex items-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={words[wordIndex]}
+                    initial={{ y: '100%', opacity: 0 }}
+                    animate={{ y: '0%', opacity: 1 }}
+                    exit={{ y: '-100%', opacity: 0 }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute inset-0 flex items-center whitespace-nowrap"
+                  >
+                    {splitLetters(words[wordIndex])}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
-
-            <button
-              onClick={togglePlay}
-              className="w-10 h-10 rounded-full bg-ink dark:bg-dark-text text-paper-light dark:text-dark-bg flex items-center justify-center hover:scale-105 transition-transform"
-              aria-label="Toggle Play"
-            >
-              {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
-            </button>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Empty bottom spacer */}
+        <div className="h-1" />
       </div>
 
-      {/* Footer hint */}
-      <div className="pt-8 flex items-center justify-between font-mono text-xs text-ink-muted dark:text-dark-muted relative z-10">
-        <div className="flex items-center gap-2">
-          <ArrowDownRight size={14} className="text-accent animate-bounce" />
-          <span>MOVE CURSOR FOR 3D PERSPECTIVE TILT</span>
-        </div>
-        <div>2026 3D EDITION</div>
+      {/* Bottom Organic Wave Curve */}
+      <div className="hero-bottom-wave">
+        <svg viewBox="0 0 1440 160" preserveAspectRatio="none" className="w-full h-full text-[var(--bg-base)] fill-current">
+          <path d="M0,60 C320,140 480,20 800,100 C1120,180 1280,40 1440,80 L1440,160 L0,160 Z" />
+        </svg>
       </div>
     </section>
   );

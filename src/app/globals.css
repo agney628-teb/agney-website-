@@ -1,43 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --hero-from: #fff9f1;
-  --hero-to: #e8ded1;
-  --bg-base: #fbfbfa;
-  --cream-text: #1a1918;
-  --text-heading: #0c0c0e;
-  --text-muted: #6b6661;
-  --border-subtle: #e6e5e0;
-  --gold: #d4af37;
-  --accent: #ff3b00;
-  --paper-light: #ffffff;
-  --paper-dark: #e6e5e0;
+  --c-cream: #fff9f1;
+  --c-cream-2: #fff9e9;
+  --c-sand: #eee8d2;
+  --c-ink: #060606;
+  --c-black: #000000;
+  --c-white: #ffffff;
+  --c-gold: #ffda3f;
+  --c-night: #061125;
+  --c-navy-1: #0b1a3a;
+  --c-navy-2: #020712;
+  --c-blue-start: #78baf8;
+  --c-blue-end: #5788b3;
+
+  --bg-base: #fff9f1;
+  --surface-raised: #eee8d2;
+  --text-heading: #060606;
+  --text-muted: #555555;
+  --sun-fill: #ffda3f;
+  --border-subtle: rgba(0, 0, 0, 0.1);
 }
 
-.dark {
-  --hero-from: #0c0c0e;
-  --hero-to: #18181c;
-  --bg-base: #0c0c0e;
-  --cream-text: #f4f3ee;
+.dark, body.night {
+  --bg-base: #061125;
+  --surface-raised: #0b1a3a;
   --text-heading: #ffffff;
-  --text-muted: #8e8d88;
-  --border-subtle: #22222a;
-  --gold: #f4d24a;
-  --accent: #ff4500;
-  --paper-light: #141418;
-  --paper-dark: #22222a;
+  --text-muted: #a0a0a0;
+  --sun-fill: #ffffff;
+  --border-subtle: rgba(255, 255, 255, 0.15);
 }
 
 html {
   scroll-behavior: smooth;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   background-color: var(--bg-base);
   color: var(--text-heading);
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color 0.5s ease, color 0.5s ease;
   overflow-x: hidden;
 }
 
@@ -51,111 +54,314 @@ body {
   color: var(--text-heading);
 }
 
-/* ════ 3D PERSPECTIVE & SPATIAL TYPOGRAPHY ════ */
-.perspective-container {
-  perspective: 1200px;
-  transform-style: preserve-3d;
-}
-
-.text-3d-title {
-  transform-style: preserve-3d;
-  transition: transform 0.15s ease-out;
-}
-
-.text-3d-layer-front {
-  transform: translateZ(40px);
-  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.h-3d-letter {
-  display: inline-block;
-  transform-style: preserve-3d;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease, filter 0.25s ease;
-  will-change: transform;
-}
-
-.h-3d-letter:hover {
-  transform: translateZ(60px) rotateX(-15deg) rotateY(15deg) scale(1.1);
-  color: var(--gold);
-  filter: drop-shadow(0 15px 25px rgba(212, 175, 55, 0.4));
-}
-
-/* Pinned Sticky Hero */
-.hero-sticky {
+/* ════ HERO FULL BLEED PINNED STICKY ════ */
+.hero-exact {
   position: sticky;
   top: 0;
+  width: 100vw;
   height: 100vh;
-  min-height: 700px;
+  min-height: 580px;
   overflow: hidden;
   z-index: 1;
-  background: radial-gradient(ellipse 1000px 1340px at 68.65% 23.5%, var(--hero-from) 0%, var(--hero-to) 100%);
-  transition: background 0.5s ease;
+  background-color: #78baf8;
+  transition: background-color 0.6s ease;
 }
 
-.hero-noise-layer {
+.dark .hero-exact {
+  background-color: #061125;
+}
+
+/* Day Mode Hero Image Background */
+.hero-sky-day {
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.12;
+  background-image: url('/white-mode-hero-bg.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  opacity: 1;
+  transition: opacity 0.6s ease;
   pointer-events: none;
+  z-index: 1;
 }
 
-.h-serif {
+.dark .hero-sky-day {
+  opacity: 0;
+}
+
+/* Dark Mode Hero Image Background (x.png) */
+.hero-sky-dark {
+  position: absolute;
+  inset: 0;
+  background-image: url('/x.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .hero-sky-dark {
+  opacity: 1;
+}
+
+/* Shooting Star Meteor in Night Mode */
+.shooting-star {
+  position: absolute;
+  top: 18%;
+  left: 60%;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,1), rgba(255,255,255,0.6), transparent);
+  transform: rotate(-35deg) translateX(-100px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dark .shooting-star {
+  animation: meteorShoot 6.5s ease-in-out infinite;
+}
+
+@keyframes meteorShoot {
+  0% { opacity: 0; transform: rotate(-35deg) translate3d(0, 0, 0) scaleX(0.2); }
+  10% { opacity: 1; transform: rotate(-35deg) translate3d(-180px, 120px, 0) scaleX(1); }
+  20% { opacity: 0; transform: rotate(-35deg) translate3d(-350px, 240px, 0) scaleX(1.4); }
+  100% { opacity: 0; transform: rotate(-35deg) translate3d(-350px, 240px, 0); }
+}
+
+/* ════ COMPACT HATCHED SUN / MOON CIRCLE (OVERLAPPING 'o' IN 'who') ════ */
+.hatched-sun {
+  position: absolute;
+  top: 13%;
+  right: 7%;
+  width: clamp(125px, 14vw, 180px);
+  height: clamp(125px, 14vw, 180px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 15;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ════ TYPOGRAPHY ════ */
+.dm-serif {
   font-family: 'DM Serif Display', serif;
   font-weight: 400;
-  line-height: 0.95;
+  letter-spacing: 0.5px;
 }
 
-.roll-container {
+.h-letter {
   display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-  height: 1.1em;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
 }
 
-.roll-track {
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.h-letter:hover {
+  transform: translateY(-8px) rotate(-6deg);
+  color: #ffda3f;
 }
 
-/* Analog Audio Recorder Pill */
-.recorder-pill {
+/* ════ ULTRA-SOFT VELVETY CERAMIC MUSIC PLAYER PILL ════ */
+.player-pill-exact {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
+  gap: clamp(14px, 2vw, 22px);
+  padding: 13px clamp(16px, 2vw, 24px);
   border-radius: 9999px;
-  background: #dfdcd5;
-  border: 1px solid #c9c9c9;
-  box-shadow: 0 15px 30px 0 rgba(0, 0, 0, 0.25);
-  color: #070707;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease-out;
+  background: linear-gradient(175deg, #eae5db 0%, #ded9ce 50%, #d4cec2 100%);
+  box-shadow: 
+    0 28px 60px -6px rgba(0, 0, 0, 0.32),
+    0 12px 24px -3px rgba(0, 0, 0, 0.16),
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.95),
+    inset 0 0.5px 0.5px rgba(255, 255, 255, 1),
+    inset 0 -2.5px 4px rgba(0, 0, 0, 0.1);
+  color: #2c2822;
+  user-select: none;
+  max-width: 100%;
 }
 
-.dark .recorder-pill {
-  background: #1c1c22;
-  border-color: #2a2a34;
-  color: #f4f3ee;
+.dark .player-pill-exact {
+  background: linear-gradient(175deg, #eae5db 0%, #ded9ce 50%, #d4cec2 100%);
+  box-shadow: 
+    0 30px 65px -6px rgba(0, 0, 0, 0.65),
+    0 12px 26px -3px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.95),
+    inset 0 0.5px 0.5px rgba(255, 255, 255, 1),
+    inset 0 -2.5px 4px rgba(0, 0, 0, 0.1);
+  color: #2c2822;
 }
 
-.disk-spin {
-  animation: diskRotate 2.5s linear infinite;
+/* Velvety Recessed Bezel Well for Vinyl Dial */
+.dial-well {
+  width: clamp(76px, 7.6vw, 92px);
+  height: clamp(76px, 7.6vw, 92px);
+  border-radius: 50%;
+  padding: 3.5px;
+  background: linear-gradient(180deg, #c4bdae 0%, #b8b1a2 100%);
+  box-shadow: 
+    inset 0 2.5px 5px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.5),
+    0 1px 1.5px rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-@keyframes diskRotate {
+/* Original Smooth Vinyl Grooved Speaker Disc */
+.dial-disc {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: 
+    radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 75%, #080808 100%),
+    repeating-radial-gradient(circle at center, #202020 0px, #202020 1px, #131313 1.5px, #131313 2.5px),
+    conic-gradient(from 0deg, #161616 0deg, #363636 30deg, #181818 60deg, #323232 90deg, #141414 120deg, #363636 150deg, #181818 180deg, #363636 210deg, #181818 240deg, #323232 270deg, #141414 300deg, #363636 330deg, #161616 360deg);
+  border: 1px solid #24221e;
+  box-shadow: 
+    0 3px 8px rgba(0, 0, 0, 0.65),
+    inset 0 0 8px rgba(0, 0, 0, 0.9);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Polished Brass / Olive Spindle Core with Specular Light Reflection */
+.dial-center-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d1cca8 0%, #948e64 55%, #4e492e 100%);
+  border: 1px solid #3d3925;
+  box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.6), inset 0 1px 1.5px rgba(255, 255, 255, 0.85);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dial-center-dot::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0f0f0f;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.9);
+}
+
+.spin-dial {
+  animation: dialSpin 2.4s linear infinite;
+}
+
+@keyframes dialSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-/* Overlapping Projects Section */
+/* Smooth Velvety Recessed Track Slider Trench */
+.slider-trench {
+  width: 100%;
+  height: 10px;
+  border-radius: 9999px;
+  background: #3a3631;
+  box-shadow: 
+    inset 0 2.5px 4px rgba(0, 0, 0, 0.7),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.1),
+    0 1px 1px rgba(255, 255, 255, 0.85);
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+
+/* Smooth Glowing Yellow Active Music Progress Line */
+.slider-progress-yellow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #ffc820 0%, #ffda3f 100%);
+  box-shadow: 0 0 10px rgba(255, 218, 63, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  transition: width 0.15s linear;
+}
+
+/* Soft 3D Pearl Sphere Knob with Diffuse Specular Highlight */
+.slider-pearl-knob {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #dfdbd2 45%, #b0aaa0 85%, #858075 100%);
+  box-shadow: 
+    0 3.5px 7px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1.5px 2px rgba(255, 255, 255, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.slider-pearl-knob::after {
+  content: '';
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: #7d7870;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+/* Soft Tactile Dark Bronze Play / Pause Button */
+.player-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #464032 0%, #2b271e 80%, #1a1711 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 3.5px 7px rgba(0, 0, 0, 0.38),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+}
+
+.player-play-btn:hover {
+  transform: scale(1.08);
+}
+
+.player-play-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* ════ BOTTOM ORGANIC CLOUD WAVE ════ */
+.hero-bottom-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: clamp(80px, 12vh, 160px);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Overlapping Projects Stream */
 .projects-overlap {
   position: relative;
   z-index: 10;
   background-color: var(--bg-base);
-  border-t: 1px solid var(--border-subtle);
   transition: background-color 0.4s ease;
 }
 
@@ -195,10 +401,7 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
 ::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.3);
-  border-radius: 3px;
+  background: rgba(150, 150, 150, 0.35);
+  border-radius: 99px;
 }
