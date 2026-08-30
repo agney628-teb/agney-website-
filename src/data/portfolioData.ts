@@ -116,10 +116,10 @@ export const PROJECTS: Project[] = [
     summary: "An advanced AI Teacher Robot featuring a custom-built OS, inbuilt projection system, and 20+ interactive educational capabilities.",
     description: "Edu Bot AI is an AI teacher project engineered with a custom-built OS, integrated projector, and over 20+ interactive pedagogical features. It gave our 4-student team the confidence and courage to found TEB Innovations.",
     tags: ["Robotics", "Custom OS", "AI Teacher", "Inbuilt Projector", "20+ Features"],
-    coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=80",
+    coverImage: "/edu-bot-ai.jpg",
     galleryImages: [
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80"
+      "/edu-bot-ai.jpg",
+      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
     ],
     accentColor: "#E53E3E",
     caseStudy: {
@@ -146,8 +146,9 @@ export const PROJECTS: Project[] = [
     summary: "Intelligent AI doctor assistant that captures comprehensive vitals, provides automated diagnostics, and streamlines medical documentation.",
     description: "Dr. Zoe collects vital biometric data (height, weight, pulse, body temperature, etc.), features an AI Doctor consultation engine, generates diagnostic reports, and functions as an automated medical sheet generator.",
     tags: ["HealthTech", "AI Doctor", "Biometrics", "Medical Sheet Automator", "Diagnostics"],
-    coverImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1600&q=80",
+    coverImage: "/dr-zoe.jpg",
     galleryImages: [
+      "/dr-zoe.jpg",
       "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&w=1200&q=80"
     ],
     accentColor: "#3182CE",
@@ -359,7 +360,7 @@ export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
     year: "2025",
     description: "Interactive UI engine simulating Edu Bot AI's custom OS and optical projection interface.",
     type: "interaction",
-    previewImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
+    previewImage: "/edu-bot-ai.jpg"
   },
   {
     id: "play-2",
@@ -368,7 +369,7 @@ export const PLAYGROUND_ITEMS: PlaygroundItem[] = [
     year: "2025",
     description: "Live real-time pulse and temperature waveform renderer with diagnostic classification.",
     type: "particle",
-    previewImage: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"
+    previewImage: "/dr-zoe.jpg"
   },
   {
     id: "play-3",
@@ -389,7 +390,7 @@ export const MOTION_REELS: MotionItem[] = [
     duration: "01:24",
     year: "2026",
     description: "Showreel of Edu Bot AI demonstrations, robotics hardware prototypes, and video editing craft.",
-    thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+    thumbnail: "/edu-bot-ai.jpg",
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
   }
 ];
@@ -417,14 +418,14 @@ export const PERSONAL_INTERESTS = [
     title: "Robotics & Hardware Systems",
     category: "Innovation",
     tag: "ATL Lab",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80",
+    image: "/edu-bot-ai.jpg",
     description: "Building physical robots, custom operating systems, and intelligent sensor arrays."
   },
   {
     title: "AI & Computer Vision",
     category: "Intelligence",
     tag: "TEB Innovations",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80",
+    image: "/dr-zoe.jpg",
     description: "Developing intelligent assistants and computer vision pipelines that help people in the real world."
   }
 ];
