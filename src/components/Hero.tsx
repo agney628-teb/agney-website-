@@ -12,11 +12,10 @@ export default function Hero({ onCursorChange }: HeroProps) {
   const [wordIndex, setWordIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const totalDuration = 120; // 2:00
+  const [duration, setDuration] = useState(238); // ~4 minutes default fallback
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const words = ['Codes', 'Builds', 'Ships', 'Solves'];
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
 
   // Scroll animations for scaling down text and elements as user scrolls down
   const { scrollY } = useScroll();
@@ -34,60 +33,49 @@ export default function Hero({ onCursorChange }: HeroProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Timer counter when playing
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
+  // HTML5 Audio playback toggle
+  const togglePlay = () => {
+    if (!audioRef.current) return;
     if (isPlaying) {
-      timer = setInterval(() => {
-        setCurrentTime((prev) => (prev >= totalDuration ? 0 : prev + 1));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isPlaying, totalDuration]);
-
-  // Audio synthesizer beat
-  const togglePlay = async () => {
-    if (!isPlaying) {
-      try {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        let ctx = audioContextRef.current;
-        if (!ctx) {
-          ctx = new AudioContextClass();
-          audioContextRef.current = ctx;
-        }
-
-        if (ctx.state === 'suspended') {
-          await ctx.resume();
-        }
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(140, ctx.currentTime);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        oscillatorRef.current = osc;
-      } catch (e) {
-        console.log('AudioContext error', e);
-      }
-      setIsPlaying(true);
+      audioRef.current.pause();
     } else {
-      if (oscillatorRef.current) {
-        try {
-          oscillatorRef.current.stop();
-        } catch (e) {
-          // ignore
-        }
-      }
-      setIsPlaying(false);
+      audioRef.current.play().catch((err) => {
+        console.log('Playback error:', err);
+      });
     }
   };
 
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current && !isNaN(audioRef.current.duration)) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const pct = Math.max(0, Math.min(1, clickX / rect.width));
+    const newTime = pct * (duration || 238);
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
   const formatTime = (secs: number) => {
+    if (isNaN(secs)) return '0:00';
     const m = Math.floor(secs / 60);
-    const s = secs % 60;
+    const s = Math.floor(secs % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
@@ -99,10 +87,22 @@ export default function Hero({ onCursorChange }: HeroProps) {
     ));
   };
 
-  const progressPercent = Math.min(100, Math.max(0, (currentTime / totalDuration) * 100));
+  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
 
   return (
     <section className="hero-exact relative w-full h-screen min-h-[580px] select-none overflow-hidden flex flex-col justify-between">
+      {/* Real Audio Element for "Build It.mp3" */}
+      <audio
+        ref={audioRef}
+        src="/build-it.mp3"
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+      />
+
       {/* Exact Day Mode Background Image */}
       <div className="hero-sky-day" />
 
@@ -178,18 +178,13 @@ export default function Hero({ onCursorChange }: HeroProps) {
                   <div className="flex flex-col items-center justify-center gap-1.5 px-3 sm:px-5 min-w-[170px] sm:min-w-[215px]">
                     {/* Track Title */}
                     <div className="font-mono text-[12px] sm:text-[13px] text-[#2c2822] tracking-normal font-normal text-center">
-                      My design journey, rapped
+                      Build It
                     </div>
 
                     {/* Recessed Slider Trench with Glowing Yellow Active Progress Line & Pearl Knob */}
                     <div
-                      onClick={(e) => {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        const clickX = e.clientX - rect.left;
-                        const pct = Math.max(0, Math.min(1, clickX / rect.width));
-                        setCurrentTime(Math.floor(pct * totalDuration));
-                      }}
-                      className="slider-trench my-0.5"
+                      onClick={handleSeek}
+                      className="slider-trench my-0.5 cursor-pointer"
                     >
                       {/* Glowing Yellow Active Music Progress Line */}
                       <div
@@ -207,13 +202,13 @@ export default function Hero({ onCursorChange }: HeroProps) {
                     {/* Timestamps */}
                     <div className="w-full flex items-center justify-between font-mono text-[11px] sm:text-[12px] text-[#332f28] font-normal px-0.5">
                       <span>{formatTime(currentTime)}</span>
-                      <span>2:00</span>
+                      <span>{formatTime(duration)}</span>
                     </div>
 
                     {/* Warm Dark Bronze Play Button */}
                     <button
                       onClick={togglePlay}
-                      className="player-play-btn mt-0.5"
+                      className="player-play-btn mt-0.5 cursor-pointer"
                       aria-label="Toggle Play"
                     >
                       {isPlaying ? (
